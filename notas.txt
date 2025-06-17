@@ -1,0 +1,2 @@
+DATABASE_URL=mongodb+srv://odm:9595@clusterodm.iskeevq.mongodb.net/uptask_mern
+LOCAL_DATABASE_URL=mongodb://mongo:27017/uptask
