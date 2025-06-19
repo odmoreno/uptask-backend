@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { body, param } from "express-validator";
 import { handleInputErrors } from "../middleware/validation";
-import { validateProjectExists } from "../middleware/project";
+import { projectExists, taskBelongsToProject, taskExists } from "../middleware";
 import { ProjectController, TaskController } from "../controllers";
 
 const router = Router();
@@ -26,31 +26,58 @@ const taskValidations = [
 		.withMessage("La descripcion de la tarea es obligatorio"),
 ];
 
-const mongoIdValidation = [
-	param("id").isMongoId().withMessage("ID no válida"),
-];
+const mongoIdValidation = [param("id").isMongoId().withMessage("ID no válida")];
 
 const taskIdValidation = [
 	param("taskId").isMongoId().withMessage("ID no válida"),
 ];
 
 // Project routes
-router.post("/", projectValidations, handleInputErrors, ProjectController.createProject);
+router.post(
+	"/",
+	projectValidations,
+	handleInputErrors,
+	ProjectController.createProject
+);
 
 router.get("/", ProjectController.getAllProjects);
 
-router.get("/:id", mongoIdValidation, handleInputErrors, ProjectController.getProjectById);
+router.get(
+	"/:id",
+	mongoIdValidation,
+	handleInputErrors,
+	ProjectController.getProjectById
+);
 
-router.put("/:id", mongoIdValidation, projectValidations, handleInputErrors, ProjectController.updateProject);
+router.put(
+	"/:id",
+	mongoIdValidation,
+	projectValidations,
+	handleInputErrors,
+	ProjectController.updateProject
+);
 
-router.delete("/:id", mongoIdValidation, handleInputErrors, ProjectController.deleteProject);
+router.delete(
+	"/:id",
+	mongoIdValidation,
+	handleInputErrors,
+	ProjectController.deleteProject
+);
 
 /** Routes for tasks - nested resource routing*/
-router.param("projectId", validateProjectExists);
+router.param("projectId", projectExists);
 
-router.post("/:projectId/tasks", taskValidations, handleInputErrors, TaskController.createTask);
+router.post(
+	"/:projectId/tasks",
+	taskValidations,
+	handleInputErrors,
+	TaskController.createTask
+);
 
 router.get("/:projectId/tasks", TaskController.getProjectTasks);
+
+router.param("taskId", taskExists);
+router.param("taskId", taskBelongsToProject);
 
 router.get("/:projectId/tasks/:taskId", taskIdValidation, handleInputErrors, TaskController.getTaskById);
 

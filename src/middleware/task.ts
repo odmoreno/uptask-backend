@@ -1,12 +1,12 @@
 import type { Request, Response, NextFunction } from "express";
-import { Document } from "mongoose";
+import { HydratedDocument } from "mongoose";
 
-import Task from "../models/Task";
+import Task, { ITask } from "../models/Task";
 
 declare global {
 	namespace Express {
 		interface Request {
-			task: Document;
+			task: ITask;
 		}
 	}
 }
@@ -18,15 +18,28 @@ export async function taskExists(
 ) {
 	try {
 		const { taskId } = req.params;
-		const task = await Task.findById(taskId);
+		const task: ITask | null = await Task.findById(taskId);
 		if (!task) {
 			const error = new Error("Tarea no encontrado");
 			res.status(404).json({ error: error.message });
 			return;
 		}
-		req.task = task as Document;
+		req.task = task;
 		next();
 	} catch (error) {
 		res.status(500).json({ error: "hubo un error" });
 	}
+}
+
+export function taskBelongsToProject(
+	req: Request,
+	res: Response,
+	next: NextFunction
+) {
+	if (req.task.project.toString() !== req.project.id.toString()) {
+		const error = new Error("Tarea no pertenece al proyecto");
+		res.status(400).json({ error: error.message });
+		return;
+	}
+	next();
 }
